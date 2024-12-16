@@ -13,7 +13,6 @@ ssh -o StrictHostKeyChecking=no -i key.pem $SSH_USER@$SSH_HOST << EOF
   sudo mv unchain.service /etc/systemd/system/unchain.service
   sudo rm -rf /etc/systemd/system/emissary.service
   sudo systemctl daemon-reload
-  sudo systemctl stop emissary.service || true
   sudo systemctl stop unchain.service || true
   sudo systemctl start unchain.service
   sudo systemctl status unchain.service
