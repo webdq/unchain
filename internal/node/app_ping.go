@@ -20,7 +20,6 @@ func (app *App) Stat(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
-	//json response hello world
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	lines := []string{

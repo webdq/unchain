@@ -117,6 +117,9 @@ You can deploy the application on an Ubuntu server using GitHub Actions. Here's 
 
 learn more in [.github/workflows/deploy.sh](/.github/workflows/deploy.sh)
 
+
+
+
 ### 3. Running the Application
 
 Once the application is running, you will see a VLESS connection schema URL in the standard output. Copy and paste this URL into your V2rayN client.
@@ -125,6 +128,11 @@ Congratulations! You now have your self-hosted proxy server up and running.
 
 
 
+
+### 4. (Optional) create your own admin app for Auth and Data-traffic
+
+create an RESTful API for [chain proxy server push](https://github.com/unchainese/unchain/blob/5ece8c39814684a8a54e8e009d7c888e5988a017/internal/node/app.go#L161) :
+[Register API example code](https://github.com/unchainese/unchainadmin/blob/035b2232d4262c24ef70b8ad7abb9faebaaecc96/functions/api/nodes.ts#L34)
 
 
 ## Build your own VPN business
