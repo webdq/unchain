@@ -3,8 +3,7 @@
 Unchain is a lightweight and easy-to-use proxy server designed to bypass network restrictions, censorship, and surveillance effectively.  
 
 ## Key Features  
-- **Protocol Support**: Unchain proxies VLESS packets over WebSocket (TLS).  
-- **Dual Support**: Supports both TCP and UDP proxying.  
+- **Protocol Support**: Unchain proxies TCP+UDP(VLESS) packets over WebSocket (TLS/Cloudflare).  
 - **Built your own VPN business**: You can build your own business on it.
 
 ## How It Works  
@@ -120,6 +119,7 @@ learn more in [.github/workflows/deploy.sh](/.github/workflows/deploy.sh)
 Once the application is running, you will see a VLESS connection schema URL in the standard output. Copy and paste this URL into your V2rayN client.
 
 Congratulations! You now have your self-hosted proxy server up and running.
+
 
 
 

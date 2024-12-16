@@ -89,6 +89,9 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 		sessionTrafficByteN += vlessUDP(ctx, vData, ws)
 	} else if vData.DstProtocol == "tcp" {
 		sessionTrafficByteN += vlessTCP(ctx, vData, ws)
+	}else{
+		log.Println("Error unsupported protocol:", vData.DstProtocol)
+		return
 	}
 	app.trafficInc(vData.UUID(), sessionTrafficByteN)
 }
