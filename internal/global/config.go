@@ -43,11 +43,11 @@ var (
 
 var cfg *Config
 
-func Cfg() *Config {
+func Cfg(tomlFilePath string) *Config {
 	if cfg != nil {
 		return cfg
 	}
-	cfgIns, err := loadFromToml("config.toml")
+	cfgIns, err := loadFromToml(tomlFilePath)
 	if err != nil {
 		panic(err)
 	} else {

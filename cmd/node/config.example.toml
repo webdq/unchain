@@ -1,7 +1,7 @@
 #
 #
-# Warnning use ' for string not " if you want to use deploy.sh
-SubAddresses = ['cf-us1.libragen.cn:443', 'n-us1.chainese.us.kg:80'] # hosts for generate vless URL
+# Warning use ' for string not " if you want to use deploy.sh
+SubAddresses = ['cf-us1.unchainese.com:443', 'n-us1.unchainese.com:80'] # hosts for generate vless URL
 ListenAddr = '0.0.0.0:80' # websocket server listen address
 RegisterUrl = 'https://admin.cf.workers.cn/api/nodes' #the master admin server for user auth,data traffic. can be empty if you only want to use the node for stand alone
 RegisterToken = 'unchain.people.from.censorship.and.surveillance'# can be empty string if you only want to use the node for yourself

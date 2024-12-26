@@ -1,7 +1,7 @@
 #
 #
-# Warnning use ' for string not " if you want to use deploy.sh
-SubAddresses = ['n-us1.chainese.us.kg:80'] # host can be visited by internet,addr of cloudflare or nginx
+# Warning use ' for string not " if you want to use deploy.sh
+SubAddresses = ['n-us1.unchainese.com:80'] # host can be visited by internet,addr of cloudflare or nginx
 ListenAddr = '0.0.0.0:80' # websocket server listen address
 RegisterUrl = '' #the master admin server for user auth,data traffic. can be empty if you only want to use the node for yourself
 RegisterToken = ''# can be empty string if you only want to use the node for yourself

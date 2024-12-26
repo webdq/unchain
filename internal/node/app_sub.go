@@ -47,7 +47,7 @@ func (s vlessSub) vlessURL(hostSni string, isTLS bool) string {
 	} else {
 		u["security"] = []string{"tls"}
 	}
-	//&security=none&allowInsecure=1&type=ws&path=#n-cn1.chainese.us.kg%3A80
+	//&security=none&allowInsecure=1&type=ws&path=#n-cn1.unchainese.com%3A80
 	return fmt.Sprintf("vless://%s@%s?%s#%s", s.UID, s.addrWithPort, u.Encode(), s.remark)
 }
 

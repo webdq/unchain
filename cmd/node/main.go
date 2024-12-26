@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	c := global.Cfg()//using default config.toml file 
+	c := global.Cfg("config.toml")//using default config.toml file 
 	fd := global.SetupLogger(c)
 	defer fd.Close()
 
