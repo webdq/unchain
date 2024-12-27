@@ -89,14 +89,14 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 		sessionTrafficByteN += vlessUDP(ctx, vData, ws)
 	} else if vData.DstProtocol == "tcp" {
 		sessionTrafficByteN += vlessTCP(ctx, vData, ws)
-	}else{
+	} else {
 		log.Println("Error unsupported protocol:", vData.DstProtocol)
 		return
 	}
 	app.trafficInc(vData.UUID(), sessionTrafficByteN)
 }
 
-func vlessTCP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
+func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
 	if err != nil {
@@ -118,22 +118,27 @@ func vlessTCP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int6
 	go func() {
 		defer wg.Done()
 		for {
-			mt, message, err := ws.ReadMessage()
-			trafficMeter.Add(int64(len(message)))
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+			select {
+			case <-ctx.Done():
 				return
-			}
-			if err != nil {
-				logger.Error("Error reading message:", "err", err)
-				return
-			}
-			if mt != websocket.BinaryMessage {
-				continue
-			}
-			_, err = conn.Write(message)
-			if err != nil {
-				logger.Error("Error writing to TCP connection:", "err", err)
-				return
+			default:
+				mt, message, err := ws.ReadMessage()
+				trafficMeter.Add(int64(len(message)))
+				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+					return
+				}
+				if err != nil {
+					logger.Error("Error reading message:", "err", err)
+					return
+				}
+				if mt != websocket.BinaryMessage {
+					continue
+				}
+				_, err = conn.Write(message)
+				if err != nil {
+					logger.Error("Error writing to TCP connection:", "err", err)
+					return
+				}
 			}
 		}
 	}()
@@ -143,25 +148,31 @@ func vlessTCP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int6
 		hasNotSentHeader := true
 		buf := make([]byte, buffSize)
 		for {
-			n, err := conn.Read(buf)
-			trafficMeter.Add(int64(n))
-			if errors.Is(err, io.EOF) {
+
+			select {
+			case <-ctx.Done():
 				return
-			}
-			if err != nil {
-				logger.Error("Error reading from TCP connection:", "err", err)
-				return
-			}
-			data := buf[:n]
-			// send header data only for the first time
-			if hasNotSentHeader {
-				hasNotSentHeader = false
-				data = append(headerVLESS, data...)
-			}
-			err = ws.WriteMessage(websocket.BinaryMessage, data)
-			if err != nil {
-				logger.Error("Error writing to websocket:", "err", err)
-				return
+			default:
+				n, err := conn.Read(buf)
+				trafficMeter.Add(int64(n))
+				if errors.Is(err, io.EOF) {
+					return
+				}
+				if err != nil {
+					logger.Error("Error reading from TCP connection:", "err", err)
+					return
+				}
+				data := buf[:n]
+				// send header data only for the first time
+				if hasNotSentHeader {
+					hasNotSentHeader = false
+					data = append(headerVLESS, data...)
+				}
+				err = ws.WriteMessage(websocket.BinaryMessage, data)
+				if err != nil {
+					logger.Error("Error writing to websocket:", "err", err)
+					return
+				}
 			}
 		}
 	}()
