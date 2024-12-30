@@ -49,7 +49,7 @@ jobs:
         with:
           upload_url: ${{ github.event.release.upload_url }}
           asset_path: bin/${{ matrix.goos }}-${{ matrix.goarch }}/${{ steps.archive.outputs.ARCHIVE_NAME }}
-          asset_name: unchain-${{ matrix.goos }}-${{ matrix.goarch }}.${{ steps.archive.outputs.ARCHIVE_NAME#*.}}
+          asset_name: unchain-${{ matrix.goos }}-${{ matrix.goarch }}.${{ steps.archive.outputs.ARCHIVE_NAME}}
           asset_content_type: application/octet-stream
 
   release:
