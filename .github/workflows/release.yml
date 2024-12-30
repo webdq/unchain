@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*' # 触发条件：当有以 'v' 开头的标签推送到仓库时触发
+  release:
+    types: [published]  # 当 Release 发布时触发
+
 
 jobs:
   build:
