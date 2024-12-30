@@ -2,22 +2,20 @@ name: Release
 
 on:
   release:
-    types: [published]  # 当 Release 发布时触发
+    types: [published] 
 
 
 jobs:
   build:
     name: Build Binaries
     permissions:
-      contents: write  # IMPORTANT: Grant write access to contents (includes releases)
+      contents: write  
     runs-on: ubuntu-latest
     strategy:
       matrix:
         goos: [linux, windows, darwin]
         goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64  # Windows on ARM64 is less common
+        
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.23'  # 使用你的 Go 版本
+          go-version: '1.23'  
 
       - name: Build executable
         id: build
@@ -37,6 +35,7 @@ jobs:
         run: |
           cd bin/${{ matrix.goos }}-${{ matrix.goarch }}
           if [[ "${{ matrix.goos }}" == "windows" ]]; then
+            mv unchain unchain.exe
             zip unchain.zip unchain.exe
           else
             tar -czvf unchain.tar.gz unchain
