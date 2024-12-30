@@ -9,6 +9,7 @@ jobs:
   build:
     name: Build Binaries
     permissions:
+      releases: write
       contents: write  # IMPORTANT: Grant write access to contents (includes releases)
     runs-on: ubuntu-latest
     strategy:
