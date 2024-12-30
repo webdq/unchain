@@ -2,7 +2,7 @@ name: Release
 
 on:
   release:
-    types: [published] 
+    types: [published] # Trigger on release published by github web interface release page
 
 
 jobs:
@@ -53,17 +53,4 @@ jobs:
           asset_name: unchain-${{ matrix.goos }}-${{ matrix.goarch }}.${{ steps.archive.outputs.ARCHIVE_NAME}}
           asset_content_type: application/octet-stream
 
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+ 
