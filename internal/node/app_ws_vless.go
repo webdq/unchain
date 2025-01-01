@@ -6,8 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gorilla/websocket"
-	"github.com/unchainese/unchain/internal/schema"
 	"io"
 	"log"
 	"net"
@@ -15,6 +13,9 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/unchainese/unchain/internal/schema"
 )
 
 const buffSize = 8 << 10
@@ -74,7 +75,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	vData, err := schema.VlessParse(earlyData)
+	vData, err := schema.VLESSParse(earlyData)
 	if err != nil {
 		log.Println("Error parsing vless data:", err)
 		return

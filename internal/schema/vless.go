@@ -6,9 +6,10 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"log/slog"
 	"net"
+
+	"github.com/google/uuid"
 )
 
 type ProtoVLESS struct {
@@ -83,8 +84,8 @@ func (h ProtoVLESS) Logger() *slog.Logger {
 	return slog.With("userID", h.userID.String(), "network", h.DstProtocol, "addr", h.HostPort())
 }
 
-// VlessParse https://xtls.github.io/development/protocols/vless.html
-func VlessParse(buf []byte) (*ProtoVLESS, error) {
+// VLESSParse https://xtls.github.io/development/protocols/vless.html
+func VLESSParse(buf []byte) (*ProtoVLESS, error) {
 	payload := &ProtoVLESS{
 		userID:      uuid.Nil,
 		DstProtocol: "",
