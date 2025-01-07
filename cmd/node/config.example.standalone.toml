@@ -1,4 +1,4 @@
-#
+# tar -xzf node.tar.gz
 #
 # Warning use ' for string not " if you want to use deploy.sh
 SubAddresses = ['n-us1.unchainese.com:80'] # host can be visited by internet,addr of cloudflare or nginx

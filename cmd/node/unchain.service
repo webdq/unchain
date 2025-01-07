@@ -1,5 +1,5 @@
 [Unit]
-Description=Emissary Proxy Node Sever of Vless over Websocket
+Description=Unchain Proxy Node Sever of Vless over Websocket
 After=network.target
 
 [Service]
