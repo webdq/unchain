@@ -25,6 +25,8 @@ Unchain processes incoming traffic and securely forwards it to the destination s
 
 
 
+
+
 Unchain is a dead simple VLESS over websocket proxy server.
 The core biz logic is only 200 lines of code.  [app_ws_vless.go](/internal/node/app_ws_vless.go).
 
@@ -116,6 +118,10 @@ You can deploy the application on an Ubuntu server using GitHub Actions. Here's 
    - `CONFIG_TOML`: Copy the content of your `config.toml` file, replace all `"` with `'`, and paste it here.
 
 learn more in [.github/workflows/deploy.sh](/.github/workflows/deploy.sh)
+
+#### Chinese deployment tutorial video
+
+<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113785108962208&bvid=BV1wBrmYmEiN&cid=27741653755&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
 
 
 
