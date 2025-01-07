@@ -119,11 +119,8 @@ You can deploy the application on an Ubuntu server using GitHub Actions. Here's 
 
 learn more in [.github/workflows/deploy.sh](/.github/workflows/deploy.sh)
 
-#### Chinese deployment tutorial video
 
-<iframe src="//player.bilibili.com/player.html?isOutside=true&aid=113785108962208&bvid=BV1wBrmYmEiN&cid=27741653755&p=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"></iframe>
-
-
+[Click to view Chinese deployment tutorial video](https://www.bilibili.com/video/BV1wBrmYmEiN/?share_source=copy_web&vd_source=aec70c249b680fe47ccf03c2051714fe)
 
 
 ### 3. Running the Application
