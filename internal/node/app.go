@@ -45,7 +45,7 @@ func NewApp(c *global.Config, sig chan os.Signal) *App {
 		svr:           nil,
 	}
 	for _, userID := range c.UserIDS() {
-		app.trafficUserKB.Store(userID, 0)
+		app.trafficUserKB.Store(userID, int64(0))
 	}
 	app.httpSvr()
 	go app.loopPush()
