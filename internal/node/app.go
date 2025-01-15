@@ -13,16 +13,12 @@ import (
 	"os"
 	"runtime"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
 type App struct {
 	cfg           *global.Config
-	mu            sync.Mutex
-	allowedUsers  map[string]int64
-	trafficUserKB sync.Map
-	reqCount      atomic.Int64
+	trafficUserKB sync.Map // string -> int64
 	svr           *http.Server
 	exitSignal    chan os.Signal
 }
@@ -44,15 +40,12 @@ func (app *App) httpSvr() {
 func NewApp(c *global.Config, sig chan os.Signal) *App {
 	app := &App{
 		cfg:           c,
-		mu:            sync.Mutex{},
-		allowedUsers:  make(map[string]int64),
 		trafficUserKB: sync.Map{},
-		reqCount:      atomic.Int64{},
 		exitSignal:    sig,
 		svr:           nil,
 	}
 	for _, userID := range c.UserIDS() {
-		app.allowedUsers[userID] = 1
+		app.trafficUserKB.Store(userID, 0)
 	}
 	app.httpSvr()
 	go app.loopPush()
@@ -72,13 +65,15 @@ func (app *App) PrintVLESSConnectionURLS() {
 	fmt.Printf("\n\n\nvist to get VLESS connection info: http://127.0.0.1:%d/sub/<YOUR_CONFIGED_UUID> \n", listenPort)
 	fmt.Printf("vist to get VLESS connection info: http://<HOST>:%d/sub/<YOUR_UUID>\n", listenPort)
 
-	for userID, _ := range app.allowedUsers {
+	app.trafficUserKB.Range(func(id, _ interface{}) bool {
+		userID := id.(string)
 		fmt.Println("\n------------- USER UUID:  ", userID, " -------------")
 		urls := app.vlessUrls(userID)
 		for _, url := range urls {
 			fmt.Println(url)
 		}
-	}
+		return true
+	})
 	fmt.Println("\n\n\n")
 }
 
@@ -110,10 +105,6 @@ func (app *App) loopPush() {
 	}
 }
 
-func (app *App) reqInc() {
-	app.reqCount.Add(1)
-}
-
 func (app *App) trafficInc(uid string, byteN int64) {
 	kb := byteN/1024 + 1 //floor
 	value, ok := app.trafficUserKB.Load(uid)
@@ -140,12 +131,11 @@ func (app *App) stat() *AppStat {
 	res := &AppStat{
 		Traffic:     data,
 		Hostname:    hostname,
-		ReqCount:    app.reqCount.Load(),
+		ReqCount:    0,
 		Goroutine:   int64(runtime.NumGoroutine()),
 		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
 	}
 	res.SubAddresses = app.cfg.SubAddresses
-	app.reqCount.Store(0)
 	return res
 }
 
@@ -191,18 +181,12 @@ func (app *App) PushNode() {
 		log.Println("Error decoding response:", err)
 		return
 	}
-	app.mu.Lock()
-	app.allowedUsers = users
-	app.mu.Unlock()
+	for k, v := range users {
+		app.trafficUserKB.Store(k, v)
+	}
 }
 
 func (app *App) IsUserNotAllowed(uuid string) (isNotAllowed bool) {
-	app.mu.Lock()
-	defer app.mu.Unlock()
-	_, ok := app.allowedUsers[uuid]
-	if !ok {
-		log.Println("Unauthorized user:", uuid)
-		return true
-	}
-	return false
+	_, ok := app.trafficUserKB.Load(uuid)
+	return !ok
 }

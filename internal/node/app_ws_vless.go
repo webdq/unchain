@@ -38,7 +38,6 @@ func startDstConnection(vd *schema.ProtoVLESS, timeout time.Duration) (net.Conn,
 }
 
 func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
-	app.reqInc()
 	uid := r.PathValue("uid")
 	//check can upgrade websocket
 	if r.Header.Get("Upgrade") != "websocket" {
