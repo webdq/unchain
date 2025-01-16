@@ -9,6 +9,7 @@ import (
 	"github.com/unchainese/unchain/internal/global"
 	"log"
 	"log/slog"
+	"math"
 	"net/http"
 	"os"
 	"runtime"
@@ -106,13 +107,13 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	kb := byteN/1024 + 1 //floor
+	kb := math.Ceil(float64(byteN) / float64(1024))
 	value, ok := app.trafficUserKB.Load(uid)
 	if !ok {
 		app.trafficUserKB.Store(uid, kb)
 		return
 	}
-	app.trafficUserKB.Store(uid, value.(int64)+kb)
+	app.trafficUserKB.Store(uid, value.(int64)+int64(kb))
 }
 
 func (app *App) stat() *AppStat {
@@ -168,8 +169,8 @@ func (app *App) PushNode() {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", app.cfg.RegisterToken)
-
-	resp, err := http.DefaultClient.Do(req)
+    client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error registering:", err)
 		return
