@@ -9,7 +9,6 @@ import (
 	"github.com/unchainese/unchain/internal/global"
 	"log"
 	"log/slog"
-	"math"
 	"net/http"
 	"os"
 	"runtime"
@@ -107,12 +106,17 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	kbInt64 := int64(math.Ceil(float64(byteN) / float64(1024)))
+	kb := byteN >> 10
 	value, ok := app.trafficUserKB.Load(uid)
 	if ok {
-		kbInt64 += value.(int64)
+		iv, isInt64 := value.(int64)
+		if isInt64 {
+			kb += iv
+		} else {
+			slog.Error("not a int64", "uid", uid, "value", value)
+		}
 	}
-	app.trafficUserKB.Store(uid, kbInt64)
+	app.trafficUserKB.Store(uid, kb)
 }
 
 func (app *App) stat() *AppStat {
