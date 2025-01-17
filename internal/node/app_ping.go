@@ -1,25 +1,11 @@
 package node
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"runtime"
 	"strings"
 )
-
-func (app *App) Stat(w http.ResponseWriter, _ *http.Request) {
-
-	all, err := json.Marshal(app.stat())
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	//json response hello world
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(all)
-}
 
 func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")

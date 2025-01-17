@@ -17,10 +17,10 @@ import (
 )
 
 type App struct {
-	cfg           *global.Config
-	trafficUserKB sync.Map // string -> int64
-	svr           *http.Server
-	exitSignal    chan os.Signal
+	cfg               *global.Config
+	userUsedTrafficKb sync.Map // string -> int64
+	svr               *http.Server
+	exitSignal        chan os.Signal
 }
 
 func (app *App) httpSvr() {
@@ -39,13 +39,13 @@ func (app *App) httpSvr() {
 
 func NewApp(c *global.Config, sig chan os.Signal) *App {
 	app := &App{
-		cfg:           c,
-		trafficUserKB: sync.Map{},
-		exitSignal:    sig,
-		svr:           nil,
+		cfg:               c,
+		userUsedTrafficKb: sync.Map{},
+		exitSignal:        sig,
+		svr:               nil,
 	}
 	for _, userID := range c.UserIDS() {
-		app.trafficUserKB.Store(userID, int64(0))
+		app.userUsedTrafficKb.Store(userID, int64(0))
 	}
 	app.httpSvr()
 	go app.loopPush()
@@ -65,7 +65,7 @@ func (app *App) PrintVLESSConnectionURLS() {
 	fmt.Printf("\n\n\nvist to get VLESS connection info: http://127.0.0.1:%d/sub/<YOUR_CONFIGED_UUID> \n", listenPort)
 	fmt.Printf("vist to get VLESS connection info: http://<HOST>:%d/sub/<YOUR_UUID>\n", listenPort)
 
-	app.trafficUserKB.Range(func(id, _ interface{}) bool {
+	app.userUsedTrafficKb.Range(func(id, _ interface{}) bool {
 		userID := id.(string)
 		fmt.Println("\n------------- USER UUID:  ", userID, " -------------")
 		urls := app.vlessUrls(userID)
@@ -107,7 +107,7 @@ func (app *App) loopPush() {
 
 func (app *App) trafficInc(uid string, byteN int64) {
 	kb := byteN >> 10
-	value, ok := app.trafficUserKB.Load(uid)
+	value, ok := app.userUsedTrafficKb.Load(uid)
 	if ok {
 		iv, isInt64 := value.(int64)
 		if isInt64 {
@@ -116,17 +116,15 @@ func (app *App) trafficInc(uid string, byteN int64) {
 			slog.Error("not a int64", "uid", uid, "value", value)
 		}
 	}
-	app.trafficUserKB.Store(uid, kb)
+	app.userUsedTrafficKb.Store(uid, kb)
 }
 
 func (app *App) stat() *AppStat {
 	data := make(map[string]int64)
-	app.trafficUserKB.Range(func(key, value interface{}) bool {
+	app.userUsedTrafficKb.Range(func(key, value interface{}) bool {
 		data[key.(string)] = value.(int64)
 		return true
 	})
-	app.trafficUserKB.Clear()
-
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"
@@ -185,12 +183,14 @@ func (app *App) PushNode() {
 		log.Println("Error decoding response:", err)
 		return
 	}
-	for k, v := range users {
-		app.trafficUserKB.Store(k, v)
+	app.userUsedTrafficKb.Clear()
+	for k, userAvailableKB := range users {
+		slog.Debug("user available traffic", "uid", k, "available", userAvailableKB)
+		app.userUsedTrafficKb.Store(k, int64(0)) //set allowed userID
 	}
 }
 
 func (app *App) IsUserNotAllowed(uuid string) (isNotAllowed bool) {
-	_, ok := app.trafficUserKB.Load(uuid)
+	_, ok := app.userUsedTrafficKb.Load(uuid)
 	return !ok
 }
