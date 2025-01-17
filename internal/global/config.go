@@ -21,6 +21,7 @@ type Config struct {
 	PushIntervalSecond int      `desc:"push interval" def:"360"` //seconds
 	GitHash            string   `desc:"git hash" def:""`
 	BuildTime          string   `desc:"build time" def:""`
+	RunAt              string   `desc:"run at" def:""`
 }
 
 func (c Config) ListenPort() int {
@@ -55,6 +56,7 @@ func Cfg(tomlFilePath string) *Config {
 	}
 	cfg.GitHash = gitHash
 	cfg.BuildTime = buildTime
+	cfg.RunAt = time.Now().Format("2006-01-02 15:04:05")
 	return cfg
 }
 

@@ -25,6 +25,7 @@ func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
 	lines := []string{
 		"BUILT HASH:  https://github.com/unchainese/unchain/tree/" + app.cfg.GitHash,
 		"BUILT TIME:  " + app.cfg.BuildTime,
+		"RUN_AT:     " + app.cfg.RunAt,
 	}
 	w.Write([]byte(strings.Join(lines, "\n\n")))
 }
