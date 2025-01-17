@@ -133,7 +133,6 @@ func (app *App) stat() *AppStat {
 	res := &AppStat{
 		Traffic:     data,
 		Hostname:    hostname,
-		ReqCount:    0,
 		Goroutine:   int64(runtime.NumGoroutine()),
 		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
 	}
@@ -145,7 +144,6 @@ type AppStat struct {
 	Traffic      map[string]int64 `json:"traffic"`
 	Hostname     string           `json:"hostname"`
 	SubAddresses []string         `json:"sub_addresses"`
-	ReqCount     int64            `json:"req_count"`
 	Goroutine    int64            `json:"goroutine"`
 	VersionInfo  string           `json:"version_info"`
 }
