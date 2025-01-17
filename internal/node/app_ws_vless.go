@@ -19,12 +19,12 @@ import (
 )
 
 const (
-    buffSize           = 8 << 10
-    contentTypeHeader  = "Content-Type"
-    contentTypeJSON    = "application/json"
-    upgradeHeader      = "Upgrade"
-    websocketProtocol  = "websocket"
-    secWebSocketProto  = "sec-websocket-protocol"
+	buffSize          = 8 << 10
+	contentTypeHeader = "Content-Type"
+	contentTypeJSON   = "application/json"
+	upgradeHeader     = "Upgrade"
+	websocketProtocol = "websocket"
+	secWebSocketProto = "sec-websocket-protocol"
 )
 
 var upGrader = websocket.Upgrader{
@@ -49,7 +49,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 	//check can upgrade websocket
 	if r.Header.Get(upgradeHeader) != websocketProtocol {
 		//json response hello world
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(contentTypeHeader, contentTypeJSON)
 		w.WriteHeader(http.StatusOK)
 		data := map[string]string{"msg": "pong", "uid": uid}
 		json.NewEncoder(w).Encode(data)
