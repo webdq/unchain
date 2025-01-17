@@ -27,7 +27,7 @@ func (app *App) Ping(w http.ResponseWriter, _ *http.Request) {
 		fmt.Sprintf("GOROUTINE: %d", goroutineCount),
 		fmt.Sprintf("MEMORY.Alloc:    %.2fMB", float64(memStats.Alloc)/1024/1024),
 		fmt.Sprintf("MEMORY.TotalAlloc:    %.2fMB", float64(memStats.TotalAlloc)/1024/1024),
-		fmt.Sprintf("Used Traffic KB:    %.2fMB", n),
+		fmt.Sprintf("Used Traffic:    %d KB", n),
 	}
 	w.Write([]byte(strings.Join(lines, "\n\n")))
 }
