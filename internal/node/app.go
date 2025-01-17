@@ -107,13 +107,12 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	kb := math.Ceil(float64(byteN) / float64(1024))
+	kbInt64 := int64(math.Ceil(float64(byteN) / float64(1024)))
 	value, ok := app.trafficUserKB.Load(uid)
-	if !ok {
-		app.trafficUserKB.Store(uid, kb)
-		return
+	if ok {
+		kbInt64 += value.(int64)
 	}
-	app.trafficUserKB.Store(uid, value.(int64)+int64(kb))
+	app.trafficUserKB.Store(uid, kbInt64)
 }
 
 func (app *App) stat() *AppStat {
@@ -169,7 +168,7 @@ func (app *App) PushNode() {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", app.cfg.RegisterToken)
-    client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error registering:", err)
