@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 )
@@ -137,7 +136,7 @@ func (app *App) stat() *AppStat {
 		Goroutine:   int64(runtime.NumGoroutine()),
 		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
 	}
-	res.SubAddresses = strings.Split(app.cfg.SubAddresses, ",")
+	res.SubAddresses = app.cfg.SubHostWithPort()
 	return res
 }
 
