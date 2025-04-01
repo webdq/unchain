@@ -74,7 +74,7 @@ func (app *App) Sub(w http.ResponseWriter, r *http.Request) {
 
 func (app *App) vlessUrls(uid string) []string {
 	var subURLs []string
-	for _, subAddr := range app.cfg.SubAddresses {
+	for _, subAddr := range strings.Split(app.cfg.SubAddresses, ",") {
 		sub := vlessSub{
 			remark:       subAddr,
 			addrWithPort: subAddr,

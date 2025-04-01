@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -30,7 +31,7 @@ func (app *App) httpSvr() {
 	mux.HandleFunc("/ws-vless", app.WsVLESS)
 	mux.HandleFunc("/", app.Ping)
 	server := &http.Server{
-		Addr:    app.cfg.ListenAddr,
+		Addr:    app.cfg.ListenAddr(),
 		Handler: mux,
 	}
 	app.svr = server
@@ -53,9 +54,9 @@ func NewApp(c *global.Config, sig chan os.Signal) *App {
 }
 
 func (app *App) Run() {
-	log.Println("server starting on http://", app.cfg.ListenAddr)
+	log.Println("server starting on http://", app.cfg.ListenAddr())
 	if err := app.svr.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("Could not listen on %s: %v\n", app.cfg.ListenAddr, err)
+		log.Fatalf("Could not listen on %s: %v\n", app.cfg.ListenAddr(), err)
 	}
 }
 
@@ -136,7 +137,7 @@ func (app *App) stat() *AppStat {
 		Goroutine:   int64(runtime.NumGoroutine()),
 		VersionInfo: app.cfg.GitHash + " -> " + app.cfg.BuildTime,
 	}
-	res.SubAddresses = app.cfg.SubAddresses
+	res.SubAddresses = strings.Split(app.cfg.SubAddresses, ",")
 	return res
 }
 

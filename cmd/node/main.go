@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	c := global.Cfg("config.toml")//using default config.toml file 
+	c := global.Cfg("config.toml") //using default config.toml file
 	fd := global.SetupLogger(c)
 	defer fd.Close()
 
@@ -19,8 +19,8 @@ func main() {
 	signal.Notify(stop, os.Interrupt)
 
 	app := node.NewApp(c, stop)
-	app.PushNode()//register node info to the manager server
-	app.PrintVLESSConnectionURLS()//for standalone node
+	app.PushNode()                 //register node info to the manager server
+	app.PrintVLESSConnectionURLS() //for standalone node
 	go app.Run()
 	<-stop
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
