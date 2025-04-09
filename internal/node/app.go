@@ -106,6 +106,10 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
+	if app.cfg.DisableUserTraffic() {
+		return
+	}
+
 	kb := byteN >> 10
 	value, ok := app.userUsedTrafficKb.Load(uid)
 	if ok {

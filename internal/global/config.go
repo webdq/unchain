@@ -14,17 +14,28 @@ import (
 )
 
 type Config struct {
-	SubAddresses   string `desc:"sub addresses" def:"node1.xxx.cn:80,node2.xxx.cn:443"`                                             //这个信息会帮助你生成V2ray/Clash/ShadowRocket的订阅链接,同时这个是互联网浏览器访问的地址
-	Port           string `desc:"port" def:"8080"`                                                                                  //golang app 服务端口
-	RegisterUrl    string `desc:"register url" def:"https://admin.unchain.people.from.censorship"`                                  //optional,流量,用户鉴权的主控服务器地址
-	RegisterToken  string `desc:"register token" def:"unchain people from censorship and surveillance"`                             //optional,流量,用户鉴权的主控服务器token
-	AllowUsers     string `desc:"allow users UUID" def:"903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1"` //单机模式下,允许的用户UUID
-	LogFile        string `desc:"log file path" def:""`                                                                             //日志文件路径
-	DebugLevel     string `desc:"debug level" def:"DEBUG"`                                                                          //日志级别
-	IntervalSecond string `desc:"interval second" def:"360"`                                                                        //seconds 向主控服务器推送,流量使用情况的间隔时间
-	GitHash        string `desc:"git hash" def:""`                                                                                  //optional git hash
-	BuildTime      string `desc:"build time" def:""`                                                                                //optional build time
-	RunAt          string `desc:"run at" def:""`                                                                                    //optional run at
+	SubAddresses      string `desc:"sub addresses" def:"node1.xxx.cn:80,node2.xxx.cn:443"`                                             //这个信息会帮助你生成V2ray/Clash/ShadowRocket的订阅链接,同时这个是互联网浏览器访问的地址
+	Port              string `desc:"port" def:"8080"`                                                                                  //golang app 服务端口
+	RegisterUrl       string `desc:"register url" def:"https://admin.unchain.people.from.censorship"`                                  //optional,流量,用户鉴权的主控服务器地址
+	RegisterToken     string `desc:"register token" def:"unchain people from censorship and surveillance"`                             //optional,流量,用户鉴权的主控服务器token
+	AllowUsers        string `desc:"allow users UUID" def:"903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1"` //单机模式下,允许的用户UUID
+	LogFile           string `desc:"log file path" def:""`                                                                             //日志文件路径
+	DebugLevel        string `desc:"debug level" def:"DEBUG"`                                                                          //日志级别
+	IntervalSecond    string `desc:"interval second" def:"360"`                                                                        //seconds 向主控服务器推送,流量使用情况的间隔时间
+	GitHash           string `desc:"git hash" def:""`                                                                                  //optional git hash
+	BuildTime         string `desc:"build time" def:""`                                                                                //optional build time
+	RunAt             string `desc:"run at" def:""`                                                                                    //optional run at
+	IsUserTrafficStat string `desc:"is user traffic stat" def:"false"`                                                                 //是否开启用户流量统计
+}
+
+func (c Config) DisableUserTraffic() bool {
+	if c.IsUserTrafficStat == "" {
+		return false
+	}
+	if strings.ToLower(c.IsUserTrafficStat) == "true" {
+		return true
+	}
+	return false
 }
 
 func (c Config) SubHostWithPort() []string {
