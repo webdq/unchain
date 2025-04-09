@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"github.com/unchainese/unchain/internal/global"
 	"github.com/unchainese/unchain/internal/node"
 	"os"
@@ -9,8 +10,15 @@ import (
 	"time"
 )
 
+var configFilePath, installMode, action string
+
 func main() {
-	c := global.Cfg("config.toml") //using default config.toml file
+	flag.StringVar(&action, "action", "run", "动作参数,可选值: run, install,uninstall,info,run")
+	flag.StringVar(&configFilePath, "config", "config.toml", "配置文件路径")
+	flag.StringVar(&installMode, "mode", "single", "安装命令的模式参数")
+	flag.Parse()
+
+	c := global.Cfg(configFilePath) //using default config.toml file
 	fd := global.SetupLogger(c)
 	defer fd.Close()
 
