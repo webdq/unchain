@@ -8,17 +8,17 @@
 
 ## 安装部署
 
-从 [https://github.com/unchainese/unchain/releases/tag/v0.0.3](https://github.com/unchainese/unchain/releases/tag/v0.0.3)
+从 [https://github.com/unchainese/unchain/releases/tag/v0.0.4](https://github.com/unchainese/unchain/releases/tag/v0.0.4)
 现在对应服务器架构的二进制文件,解压到任意目录,然后运行即可.
 
 ```bash
-wget https://github.com/unchainese/unchain/releases/download/v0.0.3/unchain-linux-amd64.unchain.tar.gz
+wget https://github.com/unchainese/unchain/releases/download/v0.0.4/unchain-linux-amd64.unchain.tar.gz
 tar -zxvf unchain-linux-amd64.unchain.tar.gz
 ```
 
 在上一步解压之后的可执行文件相同的目录创建 `config.toml`配置文件.
 创建文件命令 `vim config.toml`.
-文件内容详见 [https://github.com/unchainese/unchain/blob/v0.0.3/config.example.standalone.toml](https://github.com/unchainese/unchain/blob/v0.0.3/config.example.standalone.toml)
+文件内容详见 [https://github.com/unchainese/unchain/blob/v0.0.4/config.example.standalone.toml](https://github.com/unchainese/unchain/blob/v0.0.4/config.example.standalone.toml)
 
 使用下面命令,来测试配置文件是否正确.
 ```bash
@@ -34,14 +34,17 @@ chmod +x unchain
 在 `/etc/systemd/system/` 目录下创建 `unchain.service` 文件,
 使用命令 `vim /etc/systemd/system/unchain.service` 创建文件.
 文件内容如下:
-[](https://github.com/unchainese/unchain/blob/v0.0.3/unchain.service)
+[https://github.com/unchainese/unchain/blob/v0.0.4/unchain.service](https://github.com/unchainese/unchain/blob/v0.0.4/unchain.service)
 
  - `systemctl daemon-reload` 重新加载服务
  - `systemctl start unchain` 启动服务
  - `systemctl stop unchain` 停止服务
  - `systemctl restart unchain` 重启服务
  - `systemctl status unchain` 查看服务状态
+ - `journalctl -u unchain` 查看服务日志
 
+执行 `systemctl daemon-reload` 加载刚才的配置
+执行 `systemctl start unchain` 启动服务,如果没有报错,说明服务启动成功.
 
 ## 使用V2ray/Clash/ShadowRocket 客户端连接
 

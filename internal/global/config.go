@@ -14,8 +14,8 @@ import (
 )
 
 type Config struct {
-	SubAddresses      string `desc:"sub addresses" def:"node1.xxx.cn:80,node2.xxx.cn:443"`                                             //这个信息会帮助你生成V2ray/Clash/ShadowRocket的订阅链接,同时这个是互联网浏览器访问的地址
-	Port              string `desc:"port" def:"80"`                                                                                    //golang app 服务端口
+	SubAddresses      string `desc:"sub addresses" def:"112.115.112.2:80,node2.xxx.cn:443"`                                            //这个信息会帮助你生成V2ray/Clash/ShadowRocket的订阅链接,同时这个是互联网浏览器访问的地址
+	Port              string `desc:"port" def:"80"`                                                                                    //golang app 服务端口,可选,建议默认80或者443
 	RegisterUrl       string `desc:"register url" def:""`                                                                              //optional,流量,用户鉴权的主控服务器地址
 	RegisterToken     string `desc:"register token" def:"unchain people from censorship and surveillance"`                             //optional,流量,用户鉴权的主控服务器token
 	AllowUsers        string `desc:"allow users UUID" def:"903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1"` //单机模式下,允许的用户UUID
@@ -25,13 +25,10 @@ type Config struct {
 	GitHash           string `desc:"git hash" def:""`                                                                                  //optional git hash
 	BuildTime         string `desc:"build time" def:""`                                                                                //optional build time
 	RunAt             string `desc:"run at" def:""`                                                                                    //optional run at
-	IsUserTrafficStat string `desc:"is user traffic stat" def:"false"`                                                                 //是否开启用户流量统计
+	IsUserTrafficStat string `desc:"is user traffic stat" def:"false"`                                                                 //是否开启用户流量统计,使用true 开启用户流量统计,使用false 关闭用户流量统计
 }
 
 func (c Config) DisableUserTraffic() bool {
-	if c.IsUserTrafficStat == "" {
-		return false
-	}
 	if strings.ToLower(c.IsUserTrafficStat) == "true" {
 		return true
 	}
