@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/unchainese/unchain/internal/global"
-	"github.com/unchainese/unchain/internal/node"
+	"github.com/unchainese/unchain/global"
+	"github.com/unchainese/unchain/server"
 	"os"
 	"os/signal"
 	"time"

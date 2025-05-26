@@ -28,7 +28,7 @@ Unchain processes incoming traffic and securely forwards it to the destination s
 
 
 Unchain is a dead simple VLESS over websocket proxy server.
-The core biz logic is only 200 lines of code.  [app_ws_vless.go](/internal/node/app_ws_vless.go).
+The core biz logic is only 200 lines of code.  [app_ws_vless.go](/node/app_ws_vless.go).
 
 Unchain server uses a simple architecture that is VLESS over WebSocket (WS) + TLS.
 

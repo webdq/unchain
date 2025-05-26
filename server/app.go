@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/unchainese/unchain/internal/global"
+	"github.com/unchainese/unchain/global"
 	"log"
 	"log/slog"
 	"net/http"

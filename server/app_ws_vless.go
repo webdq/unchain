@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/unchainese/unchain/schema"
 	"io"
 	"log"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/unchainese/unchain/internal/schema"
 )
 
 const (
