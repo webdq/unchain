@@ -17,7 +17,7 @@ Unchain operates as a proxy/VPN server, compatible with popular proxy clients su
 - [v2rayA](https://github.com/v2rayA/v2rayA)  
 - [Clash](https://github.com/Dreamacro/clash)  
 - [v2rayNG](https://github.com/2dust/v2rayNG)  
-- [iOS app Shadowrocket](https://apps.apple.com/us/app/shadowrocket/id932747118)
+- [iOS app ShadowRocket](https://apps.apple.com/us/app/shadowrocket/id932747118)
 
 Unchain processes incoming traffic and securely forwards it to the destination server, ensuring both security and efficiency in communication.  
 
