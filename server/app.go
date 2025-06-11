@@ -185,9 +185,15 @@ func (app *App) PushNode() {
 		return
 	}
 	app.userUsedTrafficKb.Clear()
+	const dummyUsedKB = int64(0)
 	for k, userAvailableKB := range users {
 		slog.Debug("user available traffic", "uid", k, "available", userAvailableKB)
-		app.userUsedTrafficKb.Store(k, int64(0)) //set allowed userID
+		app.userUsedTrafficKb.Store(k, dummyUsedKB) //set allowed userID
+	}
+	app.cfg.UserIDS()
+	//append config file UUIDs
+	for _, id := range app.cfg.UserIDS() {
+		app.userUsedTrafficKb.Store(id, dummyUsedKB)
 	}
 }
 
