@@ -29,7 +29,7 @@ type Config struct {
 }
 
 func (c Config) DisableUserTraffic() bool {
-	if strings.ToLower(c.IsUserTrafficStat) == "true" {
+	if strings.ToLower(c.IsUserTrafficStat) == "false" {
 		return true
 	}
 	return false
