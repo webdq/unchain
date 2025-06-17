@@ -17,6 +17,7 @@ func main() {
 	flag.StringVar(&configFilePath, "config", "config.toml", "配置文件路径")
 	flag.StringVar(&installMode, "mode", "single", "安装命令的模式参数")
 	flag.Parse()
+	//todo:: switch case command
 
 	c := global.Cfg(configFilePath) //using default config.toml file
 	fd := global.SetupLogger(c)

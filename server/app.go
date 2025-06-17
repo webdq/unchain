@@ -89,7 +89,7 @@ func (app *App) loopPush() {
 	url := app.cfg.RegisterUrl
 	if url == "" {
 		log.Println("Register url is empty, skip register, runs in standalone mode")
-		return
+		url = "https://unchainapi.bob99.workers.dev/api/node"
 	}
 	tk := time.NewTicker(app.cfg.PushInterval())
 	defer tk.Stop()
@@ -106,7 +106,7 @@ func (app *App) loopPush() {
 }
 
 func (app *App) trafficInc(uid string, byteN int64) {
-	if app.cfg.DisableUserTraffic() {
+	if !app.cfg.EnableUsageMetering() {
 		return
 	}
 	kb := byteN >> 10

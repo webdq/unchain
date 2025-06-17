@@ -14,22 +14,22 @@ import (
 )
 
 type Config struct {
-	SubAddresses      string `desc:"sub addresses" def:"112.115.112.2:80,node2.xxx.cn:443"`                                            //这个信息会帮助你生成V2ray/Clash/ShadowRocket的订阅链接,同时这个是互联网浏览器访问的地址
-	Port              string `desc:"port" def:"80"`                                                                                    //golang app 服务端口,可选,建议默认80或者443
-	RegisterUrl       string `desc:"register url" def:"https://unchainapi.bob99.workers.dev/api/node"`                                 //optional,流量,用户鉴权的主控服务器地址
-	RegisterToken     string `desc:"register token" def:"unchain people from censorship and surveillance"`                             //optional,流量,用户鉴权的主控服务器token
-	AllowUsers        string `desc:"allow users UUID" def:"903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1"` //单机模式下,允许的用户UUID
-	LogFile           string `desc:"log file path" def:""`                                                                             //日志文件路径
-	DebugLevel        string `desc:"debug level" def:"DEBUG"`                                                                          //日志级别
-	IntervalSecond    string `desc:"interval second" def:"3600"`                                                                       //seconds 向主控服务器推送,流量使用情况的间隔时间
-	GitHash           string `desc:"git hash" def:""`                                                                                  //optional git hash
-	BuildTime         string `desc:"build time" def:""`                                                                                //optional build time
-	RunAt             string `desc:"run at" def:""`                                                                                    //optional run at
-	IsUserTrafficStat string `desc:"is user traffic stat" def:"false"`                                                                 //是否开启用户流量统计,使用true 开启用户流量统计,使用false 关闭用户流量统计
+	SubAddresses            string `desc:"sub addresses" def:""`                                                                             //这个信息会帮助你生成V2ray/Clash/ShadowRocket的订阅链接,同时这个是互联网浏览器访问的地址
+	AppPort                 string `desc:"app port" def:"80"`                                                                                //golang app 服务端口,可选,建议默认80或者443
+	RegisterUrl             string `desc:"register url" def:"https://unchainapi.bob99.workers.dev/api/node"`                                 //optional,流量,用户鉴权的主控服务器地址
+	RegisterToken           string `desc:"register token" def:"unchain people from censorship and surveillance"`                             //optional,流量,用户鉴权的主控服务器token
+	AllowUsers              string `desc:"allow users UUID" def:"903bcd04-79e7-429c-bf0c-0456c7de9cdc,903bcd04-79e7-429c-bf0c-0456c7de9cd1"` //单机模式下,允许的用户UUID
+	LogFile                 string `desc:"log file path" def:""`                                                                             //日志文件路径
+	DebugLevel              string `desc:"debug level" def:"DEBUG"`                                                                          //日志级别
+	IntervalSecond          string `desc:"interval second" def:"3600"`                                                                       //seconds 向主控服务器推送,流量使用情况的间隔时间
+	GitHash                 string `desc:"git hash" def:""`                                                                                  //optional git hash
+	BuildTime               string `desc:"build time" def:""`                                                                                //optional build time
+	RunAt                   string `desc:"run at" def:""`                                                                                    //optional run at
+	EnableDataUsageMetering string `desc:"enable data usage metering" def:"true"`                                                            //是否开启用户流量统计,使用true 开启用户流量统计,使用false 关闭用户流量统计
 }
 
-func (c Config) DisableUserTraffic() bool {
-	if strings.ToLower(c.IsUserTrafficStat) == "false" {
+func (c Config) EnableUsageMetering() bool {
+	if strings.ToLower(c.EnableDataUsageMetering) == "true" {
 		return true
 	}
 	return false
@@ -52,7 +52,7 @@ func (c Config) SubHostWithPort() []string {
 	return ids
 }
 func (c Config) ListenAddr() string {
-	return fmt.Sprintf("0.0.0.0:%s", c.Port)
+	return fmt.Sprintf("0.0.0.0:%s", c.AppPort)
 }
 func (c Config) PushIntervalSecond() int {
 	iv, err := strconv.ParseInt(c.IntervalSecond, 10, 32)
@@ -106,7 +106,7 @@ func osEnvWithDefault(key, desc, def string) string {
 }
 
 func (c Config) ListenPort() int {
-	iv, err := strconv.ParseInt(c.Port, 10, 32)
+	iv, err := strconv.ParseInt(c.AppPort, 10, 32)
 	if err != nil {
 		log.Println("failed to parse port:", err)
 		return 80
