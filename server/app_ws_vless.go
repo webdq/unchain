@@ -100,7 +100,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error unsupported protocol:", vData.DstProtocol)
 		return
 	}
-	app.trafficInc(vData.UUID(), sessionTrafficByteN)
+	go app.trafficInc(vData.UUID(), sessionTrafficByteN)
 }
 
 func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
