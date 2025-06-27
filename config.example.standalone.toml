@@ -9,3 +9,4 @@ AllowUsers = '6fe57e3f-e618-4873-ba96-a76adec22ccd,6fe57e3f-e618-4873-ba96-a76ad
 LogFile = '' # can be empty if you don't want to log to file, so the log will be print to stdout
 DebugLevel = 'debug' # debug, info, warn, error
 IntervalSecond = '7200'
+EnableDataUsageMetering = 'true'

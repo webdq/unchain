@@ -29,10 +29,10 @@ type Config struct {
 }
 
 func (c Config) EnableUsageMetering() bool {
-	if strings.ToLower(c.EnableDataUsageMetering) == "true" {
-		return true
+	if strings.ToLower(c.EnableDataUsageMetering) != "true" {
+		return false
 	}
-	return false
+	return true
 }
 
 func (c Config) SubHostWithPort() []string {
