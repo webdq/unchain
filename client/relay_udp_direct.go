@@ -68,6 +68,10 @@ func (ud *RelayUdpDirect) assembleThenPipeUdp(clientAddr *net.UDPAddr, dstAddr s
 	var data []byte
 	clientDstAddr := ud.clientDstAddrAsID(clientAddr, dstAddr)
 	fragments := ud.fragments[clientDstAddr]
+	if len(fragments) == 0 {
+		return // No fragments to process
+	}
+
 	// Sort fragments by FRAG value.
 	sort.Slice(fragments, func(i, j int) bool {
 		return fragments[i].Frag < fragments[j].Frag
@@ -78,13 +82,14 @@ func (ud *RelayUdpDirect) assembleThenPipeUdp(clientAddr *net.UDPAddr, dstAddr s
 	comboPacket := fragments[0]
 	comboPacket.Data = data
 
-	// Clean up after successful reassembly.
-	delete(ud.fragments, clientDstAddr)
-	delete(ud.highestFrag, clientDstAddr)
+	// Clean up after successful reassembly - ensure timer is stopped
 	if timer, exists := ud.timers[clientDstAddr]; exists {
 		timer.Stop()
 		delete(ud.timers, clientDstAddr)
 	}
+	delete(ud.fragments, clientDstAddr)
+	delete(ud.highestFrag, clientDstAddr)
+
 	ud.segmentPipe(comboPacket, clientAddr)
 }
 
@@ -257,6 +262,17 @@ func (p udpPacket) dstAddr() string {
 }
 
 func (ud *RelayUdpDirect) Close() {
+	// Clean up all timers before closing
+	ud.mu.Lock()
+	for clientDstAddr, timer := range ud.timers {
+		timer.Stop()
+		delete(ud.timers, clientDstAddr)
+	}
+	// Clear all maps to prevent memory leaks
+	clear(ud.fragments)
+	clear(ud.highestFrag)
+	ud.mu.Unlock()
+
 	//s5 has already been closed in outside
 	if ud.relayUdp != nil {
 		err := ud.relayUdp.Close()
@@ -264,5 +280,4 @@ func (ud *RelayUdpDirect) Close() {
 			log.Println("close udp conn failed: ", err)
 		}
 	}
-
 }

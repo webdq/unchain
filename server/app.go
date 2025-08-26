@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/unchainese/unchain/global"
 	"log"
 	"log/slog"
 	"net/http"
@@ -14,6 +13,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/unchainese/unchain/global"
 )
 
 type App struct {
@@ -30,8 +31,11 @@ func (app *App) httpSvr() {
 	mux.HandleFunc("/ws-vless", app.WsVLESS)
 	mux.HandleFunc("/", app.Ping)
 	server := &http.Server{
-		Addr:    app.cfg.ListenAddr(),
-		Handler: mux,
+		Addr:         app.cfg.ListenAddr(),
+		Handler:      mux,
+		ReadTimeout:  180 * time.Second,
+		WriteTimeout: 180 * time.Second,
+		IdleTimeout:  180 * time.Second,
 	}
 	app.svr = server
 

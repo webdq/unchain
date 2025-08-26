@@ -47,16 +47,51 @@ func (ss *ClientLocalSocks5Server) Run(ctx context.Context) {
 	log.Println("SOCKS5 server listening on: " + ss.AddrSocks5)
 	//proxySettingOn(ss.AddrSocks5)
 	//defer proxySettingOff()
+
+	// Channel to receive new connections
+	connCh := make(chan net.Conn, 1)
+	// Channel to signal accept goroutine to stop
+	done := make(chan struct{})
+	defer close(done)
+
+	// Start accept goroutine
+	go func() {
+		defer close(connCh)
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				conn, err := listener.Accept()
+				if err != nil {
+					// Check if the error is due to listener being closed
+					select {
+					case <-done:
+						return // Expected closure
+					default:
+						log.Printf("Failed to accept connection: %v", err)
+						continue
+					}
+				}
+				select {
+				case connCh <- conn:
+				case <-done:
+					conn.Close() // Close connection if we can't send it
+					return
+				}
+			}
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("socks5 server exit")
 			return
-		default:
-			conn, err := listener.Accept()
-			if err != nil {
-				log.Printf("Failed to accept connection: %v", err)
-				continue
+		case conn, ok := <-connCh:
+			if !ok {
+				// Connection channel closed, exit
+				return
 			}
 			go ss.handleConnection(ctx, conn)
 		}
@@ -168,12 +203,17 @@ func (ss *ClientLocalSocks5Server) dispatchRelayTcpServer(ctx context.Context, r
 }
 
 func (ss *ClientLocalSocks5Server) pipeTcp(ctx context.Context, s5 net.Conn, relayRw io.ReadWriter) {
+	// Create cancellable context for proper goroutine cleanup
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel() // Ensure both goroutines exit when function returns
+
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
 		span := slog.With("fn", "ws -> s5")
 		defer func() {
 			span.Debug("wg1 done")
+			cancel() // Cancel context if this goroutine exits
 			wg.Done()
 		}()
 		for {
@@ -201,6 +241,7 @@ func (ss *ClientLocalSocks5Server) pipeTcp(ctx context.Context, s5 net.Conn, rel
 		span := slog.With("fn", "s5 -> ws")
 		defer func() {
 			span.Debug("wg2 done")
+			cancel() // Cancel context if this goroutine exits
 			wg.Done()
 		}()
 		for {

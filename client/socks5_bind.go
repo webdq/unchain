@@ -30,9 +30,17 @@ func relayBind(s5 net.Conn, _ *Socks5Request) {
 	socks5Response(s5, targetAddr.IP, targetAddr.Port, socks5ReplyOkay)
 
 	var wg sync.WaitGroup
+	// Use a done channel to ensure both goroutines exit when one finishes
+	done := make(chan struct{})
+
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
+		defer func() {
+			close(done)        // Signal the other goroutine to exit
+			targetConn.Close() // Force close to interrupt the other goroutine
+			s5.Close()
+		}()
 		_, err := io.Copy(targetConn, s5)
 		if err != nil {
 			slog.Error("bind tcp failed", "err", err)
@@ -40,6 +48,15 @@ func relayBind(s5 net.Conn, _ *Socks5Request) {
 	}()
 	go func() {
 		defer wg.Done()
+		defer func() {
+			targetConn.Close() // Force close to interrupt the other goroutine
+			s5.Close()
+		}()
+		select {
+		case <-done:
+			return // Other goroutine finished, exit
+		default:
+		}
 		_, err := io.Copy(s5, targetConn)
 		if err != nil {
 			slog.Error("bind tcp failed", "err", err)

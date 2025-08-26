@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/unchainese/unchain/schema"
 	"io"
 	"log"
 	"net"
@@ -14,6 +13,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/unchainese/unchain/schema"
 
 	"github.com/gorilla/websocket"
 )
@@ -121,9 +122,15 @@ func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) in
 	}
 	var trafficMeter atomic.Int64
 	var wg sync.WaitGroup
+
+	// Create cancellable context for proper goroutine cleanup
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel() // Ensure both goroutines exit when function returns
+
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
+		defer cancel() // Cancel context if this goroutine exits
 		for {
 			select {
 			case <-ctx.Done():
@@ -152,10 +159,10 @@ func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) in
 
 	go func() {
 		defer wg.Done()
+		defer cancel() // Cancel context if this goroutine exits
 		hasNotSentHeader := true
 		buf := make([]byte, buffSize)
 		for {
-
 			select {
 			case <-ctx.Done():
 				return
