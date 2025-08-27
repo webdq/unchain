@@ -107,7 +107,7 @@ def test_udp_echo():
         )  # SOCKS4 and SOCKS5 use port 1080 by default
         # Can be treated identical to a regular socket object
         # Raw DNS request
-        req = 'abcdexxxx'.encode()
+        req = '1234'.encode()
         s.sendto(req, (UDP_ECHO_TEST_SERVER_HOST, UDP_ECHO_TEST_SERVER_PORT))
         (rsp, address) = s.recvfrom(4096)
         # check req and rsp equality
@@ -131,7 +131,7 @@ def test_udp_echo():
     
 
 if __name__ == "__main__":
-    dns_query_over_socks5()
-    print("DNS query completed")
+    # dns_query_over_socks5()
+    # print("DNS query completed")
     print("-----------------")
     test_udp_echo()

@@ -230,3 +230,25 @@ func vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (tra
 	}
 	return int64(len(headerVLESS)) + int64(len(udpData))
 }
+
+func vlessUdpDataMake(payload []byte) []byte {
+	n := len(payload)
+	allBytes := make([]byte, n+2)
+	allBytes[0] = byte((n >> 8) & 0xff)
+	allBytes[1] = byte(n & 0xff)
+	copy(allBytes[2:], payload)
+	return allBytes
+}
+
+func vlessUdpDataExtract(data []byte) []byte {
+	if len(data) < 2 {
+		return nil
+	}
+	udpDataLen1 := int(data[0])
+	udpDataLen2 := int(data[1])
+	udpDataLen := (udpDataLen1 << 8) | udpDataLen2
+	if len(data) < udpDataLen+2 {
+		return nil
+	}
+	return data[2 : 2+udpDataLen]
+}

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/unchainese/unchain/schema"
@@ -41,8 +43,8 @@ const (
 var (
 	socks5Host string = "127.0.0.1"
 	socks5Port int    = 1088
-	vlessUUID         = "6fe57e3f-e618-4873-ba96-a76adec22ccd"
-	wsURL             = "ws://57.180.17.29/wsv/v1?ed=2560"
+	vlessUUID         = "13a1b3b8-3c1c-4335-868a-396534d2317b"
+	wsURL             = "ws://aws.libragen.cn/wsv/v1?ed=2560"
 )
 
 func StartSocks5Server() {
@@ -243,6 +245,20 @@ func (t *targetWs) Read(p []byte) (n int, err error) {
 	return copy(p, bytesRead), nil
 }
 
+func (t *targetWs) NextRead(p []byte) (n int, err error) {
+	t.conn.NextReader()
+	_, bytesRead, err := t.conn.ReadMessage()
+	if err != nil {
+		return 0, err
+	}
+	if len(bytesRead) > 2 && t.isFirstRead {
+		// Handle the first read case
+		t.isFirstRead = false
+		bytesRead = bytesRead[2:] // Skip the first two bytes
+	}
+	return copy(p, bytesRead), nil
+}
+
 func (t *targetWs) Write(p []byte) (n int, err error) {
 	err = t.conn.WriteMessage(websocket.BinaryMessage, p)
 	if err != nil {
@@ -385,7 +401,7 @@ func handleUDPDataRelay(udpListener *net.UDPConn, client net.Conn) error {
 		}
 
 		// Extract target address from UDP packet
-		targetAddr, err := parseUDPRequestHeader(buffer[:n])
+		targetAddr, payload, err := parseUDPRequestHeader(buffer[:n])
 		if err != nil {
 			slog.Debug(fmt.Sprintf("Failed to parse UDP header: %v", err))
 			continue
@@ -398,14 +414,26 @@ func handleUDPDataRelay(udpListener *net.UDPConn, client net.Conn) error {
 			if err := forwardUDPPacket(udpListener, clientAddr, target, data); err != nil {
 				slog.Debug(fmt.Sprintf("UDP forward error: %v", err))
 			}
-		}(buffer[:n], targetAddr)
+		}(payload, targetAddr)
 	}
 }
 
-func parseUDPRequestHeader(data []byte) (string, error) {
+func parseUDPRequestHeader(data []byte) (addr string, payload []byte, err error) {
 	if len(data) < udpHeaderLen {
-		return "", fmt.Errorf("insufficient data for UDP header")
+		return "", nil, fmt.Errorf("insufficient data for UDP header")
 	}
+
+	/*
+			Each UDP datagram carries a UDP request
+		    header with it:
+
+
+			      +----+------+------+----------+----------+----------+
+			      |RSV | FRAG | ATYP | DST.ADDR | DST.PORT |   DATA   |
+			      +----+------+------+----------+----------+----------+
+			      | 2  |  1   |  1   | Variable |    2     | Variable |
+			      +----+------+------+----------+----------+----------+
+	*/
 
 	// Skip RSV and FRAG fields
 	addrType := data[3]
@@ -415,36 +443,38 @@ func parseUDPRequestHeader(data []byte) (string, error) {
 	switch addrType {
 	case addrTypeIPv4: // IPv4
 		if len(data) < udpHeaderLen {
-			return "", fmt.Errorf("insufficient data for IPv4 address")
+			return "", nil, fmt.Errorf("insufficient data for IPv4 address")
 		}
 		address = net.IP(data[4:8]).String()
 		port = binary.BigEndian.Uint16(data[8:10])
-
-		slog.Debug(fmt.Sprintf("IPv4 parsing: data[3:7]=%v, data[7:9]=%v, address=%s, port=%d", data[3:7], data[7:9], address, port))
-
+		payload = data[10:]
+		return net.JoinHostPort(address, strconv.Itoa(int(port))), payload, nil
 	case addrTypeDomain: // Domain name
 		domainLen := int(data[4])
 		if len(data) < 7+domainLen {
-			return "", fmt.Errorf("insufficient data for domain name")
+			return "", nil, fmt.Errorf("insufficient data for domain name")
 		}
 		address = string(data[5 : 5+domainLen])
 		port = binary.BigEndian.Uint16(data[5+domainLen : 7+domainLen])
+		payload = data[7+domainLen:]
+		return net.JoinHostPort(address, strconv.Itoa(int(port))), payload, nil
 
 	case addrTypeIPv6: // IPv6
 		if len(data) < 22 {
-			return "", fmt.Errorf("insufficient data for IPv6 address")
+			return "", nil, fmt.Errorf("insufficient data for IPv6 address")
 		}
 		address = net.IP(data[4:20]).String()
 		port = binary.BigEndian.Uint16(data[20:22])
+		payload = data[22:]
+		return net.JoinHostPort(address, strconv.Itoa(int(port))), payload, nil
 
 	default:
-		return "", fmt.Errorf("unsupported address type: %d", addrType)
+		return "", nil, fmt.Errorf("unsupported address type: %d", addrType)
 	}
-
-	return net.JoinHostPort(address, strconv.Itoa(int(port))), nil
 }
 
 func forwardUDPPacket(udpListener *net.UDPConn, clientAddr *net.UDPAddr, targetAddr string, data []byte) error {
+	//has a bug not working
 	slog.Debug(fmt.Sprintf("Forwarding UDP packet to target %s", targetAddr))
 	// Resolve target address
 	addr, err := net.ResolveUDPAddr(networkUDP, targetAddr)
@@ -457,19 +487,41 @@ func forwardUDPPacket(udpListener *net.UDPConn, clientAddr *net.UDPAddr, targetA
 		return fmt.Errorf("failed to connect to target %v websocket: %w", addr, err)
 	}
 	defer ws.Close()
-	if _, err := ws.Write(data[udpHeaderLen:]); err != nil {
+
+	udpData := vlessUdpDataMake(data)
+	if _, err := ws.Write(udpData); err != nil {
 		return fmt.Errorf("failed to write to target websocket: %w", err)
 	}
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancelFunc()
 
-	// Read response from target
 	responseBuffer := make([]byte, maxUDPPacketSize)
-	n, err := ws.Read(responseBuffer)
-	if err != nil {
-		return fmt.Errorf("failed to read from target: %v", err)
-	}
+	for {
+		//todo read websocket has a bug
+		select {
 
+		case <-ctx.Done():
+			return fmt.Errorf("timeout waiting for response from target websocket")
+
+		default:
+			// Read response from ws
+			responseBuffer := make([]byte, maxUDPPacketSize)
+			n, err := ws.Read(responseBuffer)
+			if err != nil {
+				if err == io.EOF {
+					return fmt.Errorf("connection closed by target websocket")
+				}
+				slog.Debug(fmt.Sprintf("Read error from target websocket: %v", err))
+				continue
+			}
+			if n > 0 {
+				responseBuffer = responseBuffer[:n]
+				break
+			}
+		}
+	}
 	// Create response packet with SOCKS5 header
-	responsePacket := createUDPResponsePacket(data[:udpHeaderLen], responseBuffer[:n])
+	responsePacket := createUDPResponsePacket(data[:udpHeaderLen], responseBuffer)
 
 	// Send response back to client
 	_, err = udpListener.WriteToUDP(responsePacket, clientAddr)
