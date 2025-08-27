@@ -1,0 +1,38 @@
+{
+  "inbounds": [
+    {
+      "port": 1088,
+      "listen": "127.0.0.1",
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "ip": "127.0.0.1"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "127.0.0.1",
+            "port": 8013,
+            "users": [
+              {
+                "id": "6fe57e3f-e618-4873-ba96-a76adec22ccd",
+                "encryption": "none"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/wsv/v1?ed=2560"
+        }      }
+    }
+  ]
+}

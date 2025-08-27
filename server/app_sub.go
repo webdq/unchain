@@ -1,4 +1,4 @@
-package node
+package server
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ import (
 
 // vless://6fe57e3f-e618-4873-ba96-a76ad1112ccd@aws.xxx.cn:80?encryption=none&security=none&sni=s5cf.xxx.cn&allowInsecure=1
 // &type=ws
-// &hostSni=aws.xxx.cn&path=%2Fws-vless%3Fed%3D2560#locaol-clone
+// &hostSni=aws.xxx.cn&path=%2Fws-vless%3Fed%3D2560#local-clone
 type vlessSub struct {
 	remark       string
 	addrWithPort string //eg node.cloudflare.cn:443 or node.cloudflare.cn:80

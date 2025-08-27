@@ -1,4 +1,4 @@
-package node
+package server
 
 import (
 	"context"
@@ -46,6 +46,7 @@ func startDstConnection(vd *schema.ProtoVLESS, timeout time.Duration) (net.Conn,
 }
 
 func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
+
 	uid := r.PathValue("uid")
 	//check can upgrade websocket
 	if r.Header.Get(upgradeHeader) != websocketProtocol {
@@ -194,6 +195,7 @@ func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) in
 	return trafficMeter.Load()
 }
 
+// vlessUDP handles UDP traffic over VLESS protocol via WebSocket is tested ok
 func vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (trafficMeter int64) {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
@@ -202,18 +204,17 @@ func vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (tra
 		return
 	}
 	defer conn.Close()
-	trafficMeter += int64(len(sv.DataUdp()))
-	//write early data
-	_, err = conn.Write(sv.DataUdp())
+	udpData := sv.DataUdp()
+	_, err = conn.Write(udpData)
 	if err != nil {
-		logger.Error("Error writing early data to TCP connection:", "err", err)
+		logger.Error("Error writing early data to UDP connection:", "err", err)
 		return
 	}
 
 	buf := make([]byte, buffSize)
 	n, err := conn.Read(buf)
 	if err != nil {
-		logger.Error("Error reading from TCP connection:", "err", err)
+		logger.Error("Error reading from UDP connection:", "err", err)
 		return
 	}
 	udpDataLen1 := (n >> 8) & 0xff
@@ -221,11 +222,11 @@ func vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (tra
 	headerVLESS = append(headerVLESS, byte(udpDataLen1), byte(udpDataLen2))
 	headerVLESS = append(headerVLESS, buf[:n]...)
 
-	trafficMeter += int64(len(headerVLESS))
+	//send back the first udp packet with vless header
 	err = ws.WriteMessage(websocket.BinaryMessage, headerVLESS)
 	if err != nil {
 		logger.Error("Error writing to websocket:", "err", err)
 		return
 	}
-	return trafficMeter
+	return int64(len(headerVLESS)) + int64(len(udpData))
 }

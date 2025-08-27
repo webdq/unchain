@@ -13,11 +13,16 @@ import (
 var configFilePath, installMode, action string
 
 func main() {
-	flag.StringVar(&action, "action", "run", "动作参数,可选值: run, install,uninstall,info,run")
+	flag.StringVar(&action, "action", "run", "动作参数,可选值: run, install,uninstall,info,client")
 	flag.StringVar(&configFilePath, "config", "config.toml", "配置文件路径")
 	flag.StringVar(&installMode, "mode", "single", "安装命令的模式参数")
 	flag.Parse()
 	//todo:: switch case command
+
+	if action == "client" {
+		server.StartSocks5Server()
+		return
+	}
 
 	c := global.Cfg(configFilePath) //using default config.toml file
 	fd := global.SetupLogger(c)
@@ -27,7 +32,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
-	app := node.NewApp(c, stop)
+	app := server.NewApp(c, stop)
 	app.PushNode()                 //register node info to the manager server
 	app.PrintVLESSConnectionURLS() //for standalone node
 	go app.Run()

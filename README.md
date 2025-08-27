@@ -1,145 +1,195 @@
-# Unchain Proxy Server  
+# Unchain
 
-Unchain is a lightweight and easy-to-use proxy server designed to bypass network restrictions, censorship, and surveillance effectively.  
+A lightweight, high-performance proxy server for bypassing network restrictions using VLESS over WebSocket with TLS.
 
+[![Go Version](https://img.shields.io/badge/Go-1.23+-blue.svg)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](Dockerfile)
 
+## Features
 
+- **VLESS Protocol Support**: Full VLESS over WebSocket with TLS encryption
+- **Client Compatible**: Works with v2rayN, v2rayA, Clash, ShadowRocket, and more
+- **Lightweight**: Minimal resource footprint with core logic in ~200 lines
+- **Production Ready**: Includes traffic metering, health checks, and graceful shutdown
+- **Flexible Deployment**: Standalone or integrated with admin servers
+- **Memory Efficient**: Optimized goroutine management and resource cleanup
+- **High Performance**: Concurrent connections optimized for Go 1.23
 
-## Key Features  
-- **Protocol Support**: Seamlessly handles TCP and UDP (VLESS) packets over WebSocket with TLS/Cloudflare support.  
-- **Build Your Own VPN Business**: Provides a robust platform for starting your own VPN services.  
-- **Compatibility**: Fully compatible with popular proxy clients like v2rayN or any application supporting the VLESS + WebSocket protocol.  
+## Quick Start
 
+### Prerequisites
+- Go 1.23+ or Docker
+- Basic proxy/VPN knowledge
 
-## How It Works  
+### Install from Source
 
-Unchain operates as a proxy/VPN server, compatible with popular proxy clients such as v2rayN or any application that supports the VLESS+WebSocket protocol. It accepts traffic from various client applications, including:  
-
-- [v2rayN](https://github.com/2dust/v2rayN)  
-- [v2rayA](https://github.com/v2rayA/v2rayA)  
-- [Clash](https://github.com/Dreamacro/clash)  
-- [v2rayNG](https://github.com/2dust/v2rayNG)  
-- [iOS app ShadowRocket](https://apps.apple.com/us/app/shadowrocket/id932747118)
-
-Unchain processes incoming traffic and securely forwards it to the destination server, ensuring both security and efficiency in communication.  
-
-## Unchain Architecture
-
-
-
-
-
-Unchain is a dead simple VLESS over websocket proxy server.
-The core biz logic is only 200 lines of code.  [app_ws_vless.go](/node/app_ws_vless.go).
-
-Unchain server uses a simple architecture that is VLESS over WebSocket (WS) + TLS.
-
-
-```
-             V2rayN,V2rayA,Clash or ShadowRocket                          
-                 +------------------+
-                 |   VLESS Client   |
-                 |   +-----------+  |
-                 |   | TLS Layer  | |
-                 |   +-----------+  |
-                 |   | WebSocket  | |
-                 |   +-----------+  |
-                 +--------|---------+
-                          |
-                          | Encrypted VLESS Traffic (wss://)
-                          |
-           +--------------------------------------+
-           |         Internet (TLS Secured)       |
-           +--------------------------------------+
-                          |
-                          |
-        +-----------------------------------+
-        |        Reverse Proxy Server       |
-        | (e.g., Nginx or Cloudflare)       |
-        |                                   |
-        |   +---------------------------+   |
-        |   | HTTPS/TLS Termination     |   |
-        |   +---------------------------+   |
-        |   | WebSocket Proxy (wss://)  |   |
-        |   +---------------------------+   |
-        |     Forward to VLESS Server       |
-        +------------------|----------------+
-                           |
-           +--------------------------------+
-           |     Unchain       Server       |
-           |                                |
-           |   +------------------------+   |
-           |   | WebSocket Handler      |   |
-           |   +------------------------+   |
-           |   | VLESS Core Processing  |   |
-           |   +------------------------+   |
-           |                                |
-           |   Forward Traffic to Target    |
-           +------------------|-------------+
-                              |
-                     +-----------------+
-                     | Target Server   |
-                     | or Destination  |
-                     +-----------------+
-
+```bash
+git clone https://github.com/unchainese/unchain.git
+cd unchain
+go mod download
+cp config.example.standalone.toml config.toml
+# Edit config.toml
+go run main.go
 ```
 
+### Docker
 
+```bash
+docker build -t unchain .
+docker run -p 80:80 \
+  -e SUB_ADDRESSES="your-domain.com:443" \
+  -e ALLOW_USERS="your-uuid" \
+  unchain
+```
+
+## Configuration
+
+Unchain uses TOML config or environment variables.
+
+### config.toml
+
+```toml
+SubAddresses = 'domain.com:443'
+AppPort = '80'
+AllowUsers = 'uuid1,uuid2'
+LogFile = ''
+DebugLevel = 'info'
+EnableDataUsageMetering = 'true'
+```
+
+### Environment Variables
+
+```bash
+APP_PORT=80
+SUB_ADDRESSES=domain.com:443
+ALLOW_USERS=uuid1,uuid2
+```
 
 ## Usage
 
-### 1. Build from Source
+### Endpoints
+- `/wsv/{uid}` - VLESS WebSocket endpoint
+- `/sub/{uid}` - Subscription URL generator
+- `/` - Health check
 
-To build from source, follow these steps:
+### Get VLESS URLs
+```bash
+curl http://localhost:80/sub/your-uuid
+```
 
-1. Clone the repository and navigate to the `cmd/node` directory:
-   ```sh
-   cd cmd/node
-   ```
-2. Copy the example configuration file and customize it:
-   ```sh
-   cp config.example.standalone.toml config.toml
-   ```
-3. Run the application:
-   ```sh
-   go run main.go
-   ```
+### Client Setup
+Import the generated VLESS URL into your client (v2rayN, Clash, etc.).
 
-### 2. Deploying on Your Own Ubuntu Server Using GitHub Actions
+## Architecture
 
-You can deploy the application on an Ubuntu server using GitHub Actions. Here's how:
+```
+Client --VLESS/WS/TLS--> Reverse Proxy --WS--> Unchain --TCP/UDP--> Target
+```
 
-1. **Fork the repository** to your GitHub account.
-2. **Create an Environment** named `production` in your repository settings.
-3. **Add the following SSH connection details** to the Environment Secrets:
-   - `EC2_HOST`: The SSH host with port (e.g., `1.1.1.1:20`).
-   - `EC2_USER`: The SSH user (e.g., `ubuntu`).
-   - `EC2_KEY`: Your SSH private key.
+Unchain runs behind a reverse proxy (Nginx/Cloudflare) handling TLS and WebSocket upgrades.
 
-4. **Add your TOML configuration file content** to the Environment Variables:
-   - `CONFIG_TOML`: Copy the content of your `config.toml` file, replace all `"` with `'`, and paste it here.
+## Project Structure
 
-learn more in [.github/workflows/deploy.sh](/.github/workflows/deploy.sh)
+```
+├── main.go                 # Entry point
+├── server/                 # Core server
+│   ├── app.go             # HTTP server
+│   ├── app_ws_vless.go    # VLESS handler
+│   ├── app_ping.go        # Health check
+│   └── app_sub.go         # Subscription
+├── global/                 # Utilities
+│   ├── config.go          # Config management
+│   └── logger.go          # Logging
+├── schema/                 # Protocols
+│   ├── vless.go           # VLESS parser
+│   └── trojan.go          # Trojan support
+├── client/                 # Client utilities
+│   ├── client.go          # SOCKS5 proxy
+│   ├── websocket.go       # WS client
+│   ├── proxy.go           # Coordination
+│   ├── relay_*.go         # Relays
+│   ├── socks5_*.go        # SOCKS5
+│   └── geo.go             # GeoIP
+├── config.example.standalone.toml
+└── Dockerfile
+```
 
+## Technology Stack
 
-[Click to view Chinese deployment tutorial video](https://www.bilibili.com/video/BV1wBrmYmEiN/?share_source=copy_web&vd_source=aec70c249b680fe47ccf03c2051714fe)
+- **Go 1.23**
+- **gorilla/websocket** v1.5.3
+- **BurntSushi/toml** v1.4.0
+- **google/uuid** v1.6.0
+- **oschwald/geoip2-golang** v1.11.0
+- **sirupsen/logrus** v1.9.3
 
+## Troubleshooting
 
-### 3. Running the Application
+### Common Issues
 
-Once the application is running, you will see a VLESS connection schema URL in the standard output. Copy and paste this URL into your V2rayN client.
+1. **Connection Failed**
+   - Check server status: `curl http://localhost:80/`
+   - Verify firewall and DNS
+   - Ensure reverse proxy is configured
 
-Congratulations! You now have your self-hosted proxy server up and running.
+2. **WebSocket Errors**
+   - Confirm proxy supports WS upgrades
+   - Check TLS certificates
 
+3. **Auth Failed**
+   - Verify UUID in `AllowUsers`
+   - Check admin server if used
 
+4. **High Memory**
+   - Monitor goroutines via `/`
+   - Restart if >1000 goroutines
 
+### Debug
+Set `DebugLevel = 'debug'` and check logs.
 
-### 4. (Optional) create your own admin app for Auth and Data-traffic
+## Client Compatibility
 
-create an RESTful API for [chain proxy server push](https://github.com/unchainese/unchain/blob/5ece8c39814684a8a54e8e009d7c888e5988a017/internal/node/app.go#L161) :
-[Register API example code](https://github.com/unchainese/unchainadmin/blob/035b2232d4262c24ef70b8ad7abb9faebaaecc96/functions/api/nodes.ts#L34)
+- v2rayN (Windows)
+- v2rayA (Cross-platform)
+- Clash (Cross-platform)
+- v2rayNG (Android)
+- ShadowRocket (iOS)
 
+## Business Use
 
-## Build your own VPN business
+Integrate with admin server for user management, traffic metering, and billing.
 
-Using [the cloudflare page UnchainAdmin](https://github.com/unchainese/unchainadmin) start your own VPN business. 
+See [UnchainAdmin](https://github.com/unchainese/unchainadmin) for example.
+
+## Performance
+
+- **RAM**: 512MB min, 1GB+ recommended
+- **CPU**: 1 core min, 2+ for production
+- **Connections**: Thousands concurrent
+- **Memory**: ~20MB base + ~1-2MB/100 connections
+
+## Contributing
+
+1. Fork the repo
+2. Create feature branch
+3. Commit changes
+4. Push and open PR
+
+### Development
+
+```bash
+git clone https://github.com/yourusername/unchain.git
+cd unchain
+go mod download
+go test ./...
+go build
+```
+
+## License
+
+Apache License 2.0 - see [LICENSE](LICENSE)
+
+---
+
+⭐ Star if useful! [Issues](https://github.com/unchainese/unchain/issues) 

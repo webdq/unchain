@@ -1,4 +1,4 @@
-package node
+package server
 
 import (
 	"bytes"
@@ -66,8 +66,8 @@ func (app *App) Run() {
 func (app *App) PrintVLESSConnectionURLS() {
 	listenPort := app.cfg.ListenPort()
 
-	fmt.Printf("\n\n\nvist to get VLESS connection info: http://127.0.0.1:%d/sub/<YOUR_CONFIGED_UUID> \n", listenPort)
-	fmt.Printf("vist to get VLESS connection info: http://<HOST>:%d/sub/<YOUR_UUID>\n", listenPort)
+	fmt.Printf("\n\n visit to get VLESS connection info: http://127.0.0.1:%d/sub/<YOUR_CONFIGED_UUID> \n", listenPort)
+	fmt.Printf("visit to get VLESS connection info: http://<HOST>:%d/sub/<YOUR_UUID>\n", listenPort)
 
 	app.userUsedTrafficKb.Range(func(id, _ interface{}) bool {
 		userID := id.(string)

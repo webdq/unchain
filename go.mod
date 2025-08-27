@@ -7,13 +7,4 @@ require (
 	github.com/gorilla/websocket v1.5.3
 )
 
-require (
-	github.com/BurntSushi/toml v1.4.0
-	github.com/oschwald/geoip2-golang v1.11.0
-)
-
-require (
-	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-)
+require github.com/BurntSushi/toml v1.4.0

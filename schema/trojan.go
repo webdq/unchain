@@ -2,6 +2,7 @@ package schema
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -25,6 +26,13 @@ const (
 	byteLF = '\n'
 )
 
+func (p ProtoTrojan) AuthUser(password string) (isOk bool) {
+	sha224Hash := sha256.New224()
+	sha224Hash.Write([]byte(password))
+	sha224Sum := sha224Hash.Sum(nil) //28 bytes
+	hexSha224Bytes := []byte(fmt.Sprintf("%x", sha224Sum))
+	return bytes.Equal(p.sha224password, hexSha224Bytes)
+}
 func parseTrojanHeader(buffer []byte) (*ProtoTrojan, error) {
 	if len(buffer) < 56 {
 		return nil, errors.New("invalid data")
