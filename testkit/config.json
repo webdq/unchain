@@ -18,7 +18,7 @@
         "vnext": [
           {
             "address": "127.0.0.1",
-            "port": 8013,
+            "port": 80,
             "users": [
               {
                 "id": "6fe57e3f-e618-4873-ba96-a76adec22ccd",
@@ -32,7 +32,8 @@
         "network": "ws",
         "wsSettings": {
           "path": "/wsv/v1?ed=2560"
-        }      }
+        }
+      }
     }
   ]
 }

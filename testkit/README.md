@@ -43,7 +43,7 @@ EnableDataUsageMetering = 'false'
    - Follow the installation guide for V2Ray: https://www.v2fly.org/guide/install.html
    - Change to the `testkit` directory and start the V2Ray client using the provided configuration:
      ```
-     cd testkit && v2ray run
+     v2ray run -c testkit/config.json
      ```
      The client will use `testkit/config.json` for configuration.
 
