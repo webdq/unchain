@@ -3,7 +3,6 @@ package global
 import (
 	"bytes"
 	"fmt"
-	"github.com/BurntSushi/toml"
 	"log"
 	"log/slog"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
@@ -26,13 +27,11 @@ type Config struct {
 	BuildTime               string `desc:"build time" def:""`                                                                                //optional build time
 	RunAt                   string `desc:"run at" def:""`                                                                                    //optional run at
 	EnableDataUsageMetering string `desc:"enable data usage metering" def:"true"`                                                            //是否开启用户流量统计,使用true 开启用户流量统计,使用false 关闭用户流量统计
+	BufferSize              string `desc:"buffer size in bytes" def:"8192"`                                                                  //缓冲区大小,用于WebSocket和TCP/UDP读取
 }
 
 func (c Config) EnableUsageMetering() bool {
-	if strings.ToLower(c.EnableDataUsageMetering) != "true" {
-		return false
-	}
-	return true
+	return strings.ToLower(c.EnableDataUsageMetering) == "true"
 }
 
 func (c Config) SubHostWithPort() []string {
@@ -110,6 +109,15 @@ func (c Config) ListenPort() int {
 	if err != nil {
 		log.Println("failed to parse port:", err)
 		return 80
+	}
+	return int(iv)
+}
+
+func (c Config) GetBufferSize() int {
+	iv, err := strconv.ParseInt(c.BufferSize, 10, 32)
+	if err != nil {
+		log.Println("failed to parse buffer size:", err)
+		return 8192
 	}
 	return int(iv)
 }

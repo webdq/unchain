@@ -10,3 +10,4 @@ LogFile = '' # can be empty if you don't want to log to file, so the log will be
 DebugLevel = 'debug' # debug, info, warn, error
 IntervalSecond = '7200'
 EnableDataUsageMetering = 'true'
+BufferSize = '8192' # buffer size in bytes for WebSocket and TCP/UDP reads

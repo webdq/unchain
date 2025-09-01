@@ -20,22 +20,12 @@ import (
 )
 
 const (
-	buffSize          = 8 << 10
 	contentTypeHeader = "Content-Type"
 	contentTypeJSON   = "application/json"
 	upgradeHeader     = "Upgrade"
 	websocketProtocol = "websocket"
 	secWebSocketProto = "sec-websocket-protocol"
 )
-
-var upGrader = websocket.Upgrader{
-	ReadBufferSize:  buffSize,
-	WriteBufferSize: buffSize,
-	CheckOrigin: func(r *http.Request) bool {
-		// Allow all connections by default
-		return true
-	},
-}
 
 func startDstConnection(vd *schema.ProtoVLESS, timeout time.Duration) (net.Conn, []byte, error) {
 	conn, err := net.DialTimeout(vd.DstProtocol, vd.HostPort(), timeout)
@@ -65,7 +55,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error decoding early data:", err)
 	}
 
-	ws, err := upGrader.Upgrade(w, r, nil)
+	ws, err := app.upGrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading to websocket:", err)
 		return
@@ -95,9 +85,9 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 	sessionTrafficByteN := int64(len(earlyData))
 
 	if vData.DstProtocol == "udp" {
-		sessionTrafficByteN += vlessUDP(ctx, vData, ws)
+		sessionTrafficByteN += app.vlessUDP(ctx, vData, ws)
 	} else if vData.DstProtocol == "tcp" {
-		sessionTrafficByteN += vlessTCP(ctx, vData, ws)
+		sessionTrafficByteN += app.vlessTCP(ctx, vData, ws)
 	} else {
 		log.Println("Error unsupported protocol:", vData.DstProtocol)
 		return
@@ -105,7 +95,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 	go app.trafficInc(vData.UUID(), sessionTrafficByteN)
 }
 
-func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
+func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
 	if err != nil {
@@ -162,7 +152,8 @@ func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) in
 		defer wg.Done()
 		defer cancel() // Cancel context if this goroutine exits
 		hasNotSentHeader := true
-		buf := make([]byte, buffSize)
+		buf := app.bufferPool.Get().([]byte)
+		defer app.bufferPool.Put(buf)
 		for {
 			select {
 			case <-ctx.Done():
@@ -196,7 +187,7 @@ func vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) in
 }
 
 // vlessUDP handles UDP traffic over VLESS protocol via WebSocket is tested ok
-func vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (trafficMeter int64) {
+func (app *App) vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (trafficMeter int64) {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
 	if err != nil {
@@ -211,7 +202,8 @@ func vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) (tra
 		return
 	}
 
-	buf := make([]byte, buffSize)
+	buf := app.bufferPool.Get().([]byte)
+	defer app.bufferPool.Put(buf)
 	n, err := conn.Read(buf)
 	if err != nil {
 		logger.Error("Error reading from UDP connection:", "err", err)

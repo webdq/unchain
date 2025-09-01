@@ -10,5 +10,6 @@ LogFile = 'unchain.log' # 日志文件名,可以为空则不记录日志
 DebugLevel = 'debug' # 日志基本debug, info, warn, error
 IntervalSecond = '7200' #主控服务器推送流量数据的间隔,个人模式不关心
 EnableDataUsageMetering = 'true'
+BufferSize = '8192' # 缓冲区大小,用于WebSocket和TCP/UDP读取
 
 

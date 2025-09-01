@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/unchainese/unchain/global"
 )
 
@@ -22,6 +23,8 @@ type App struct {
 	userUsedTrafficKb sync.Map // string -> int64
 	svr               *http.Server
 	exitSignal        chan os.Signal
+	bufferPool        *sync.Pool
+	upGrader          *websocket.Upgrader
 }
 
 func (app *App) httpSvr() {
@@ -42,11 +45,25 @@ func (app *App) httpSvr() {
 }
 
 func NewApp(c *global.Config, sig chan os.Signal) *App {
+	bufferSize := c.GetBufferSize()
 	app := &App{
 		cfg:               c,
 		userUsedTrafficKb: sync.Map{},
 		exitSignal:        sig,
 		svr:               nil,
+		bufferPool: &sync.Pool{
+			New: func() interface{} {
+				return make([]byte, bufferSize)
+			},
+		},
+		upGrader: &websocket.Upgrader{
+			ReadBufferSize:  bufferSize,
+			WriteBufferSize: bufferSize,
+			CheckOrigin: func(r *http.Request) bool {
+				// Allow all connections by default
+				return true
+			},
+		},
 	}
 	for _, userID := range c.UserIDS() {
 		app.userUsedTrafficKb.Store(userID, int64(0))
