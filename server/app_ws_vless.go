@@ -135,6 +135,10 @@ func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websock
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
 					return
 				}
+				//handle EOF error
+				if errors.Is(err, websocket.ErrCloseSent) {
+					return
+				}
 				if err != nil {
 					logger.Error("Error reading message:", "err", err)
 					return
