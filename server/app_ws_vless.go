@@ -95,6 +95,8 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 	go app.trafficInc(vData.UUID(), sessionTrafficByteN)
 }
 
+const readTimeOut = 10 * time.Second
+
 func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
 	logger := sv.Logger()
 	conn, headerVLESS, err := startDstConnection(sv, time.Millisecond*1000)
@@ -127,6 +129,7 @@ func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websock
 			case <-ctx.Done():
 				return
 			default:
+				ws.SetReadDeadline(time.Now().Add(readTimeOut))
 				mt, message, err := ws.ReadMessage()
 				trafficMeter.Add(int64(len(message)))
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
@@ -159,6 +162,7 @@ func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websock
 			case <-ctx.Done():
 				return
 			default:
+				conn.SetReadDeadline(time.Now().Add(readTimeOut))
 				n, err := conn.Read(buf)
 				trafficMeter.Add(int64(n))
 				if errors.Is(err, io.EOF) {

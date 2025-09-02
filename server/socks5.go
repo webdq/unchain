@@ -321,9 +321,10 @@ func handleTCPRelay(client net.Conn, request *socks5Request) error {
 	}()
 
 	// Wait for either direction to finish
-	err = <-errChan
-	if err != nil && err != io.EOF {
-		slog.Debug(fmt.Sprintf("TCP relay error: %v", err))
+	for i := 0; i < 2; i++ {
+		if err := <-errChan; err != nil && err != io.EOF {
+			slog.Debug(fmt.Sprintf("TCP relay error: %v", err))
+		}
 	}
 
 	return nil
@@ -369,6 +370,18 @@ func handleUDPRelay(client net.Conn, request *socks5Request) error {
 	}
 
 	slog.Info(fmt.Sprintf("UDP association established on %s for client %s", actualAddr.String(), client.RemoteAddr()))
+
+	// Monitor client connection and close UDP listener when client disconnects
+	go func() {
+		defer udpListener.Close()
+		buf := make([]byte, 1)
+		for {
+			_, err := client.Read(buf)
+			if err != nil {
+				return
+			}
+		}
+	}()
 
 	// Start UDP relay
 	return handleUDPDataRelay(udpListener, client)

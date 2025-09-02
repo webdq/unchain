@@ -114,6 +114,9 @@ func (c Config) ListenPort() int {
 }
 
 func (c Config) GetBufferSize() int {
+	if c.BufferSize == "" {
+		return 8192
+	}
 	iv, err := strconv.ParseInt(c.BufferSize, 10, 32)
 	if err != nil {
 		log.Println("failed to parse buffer size:", err)
