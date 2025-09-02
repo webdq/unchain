@@ -95,7 +95,7 @@ func (app *App) WsVLESS(w http.ResponseWriter, r *http.Request) {
 	go app.trafficInc(vData.UUID(), sessionTrafficByteN)
 }
 
-const readTimeOut = 10 * time.Second
+const readTimeOut = 60 * time.Second * 3
 
 func (app *App) vlessTCP(ctx context.Context, sv *schema.ProtoVLESS, ws *websocket.Conn) int64 {
 	logger := sv.Logger()
