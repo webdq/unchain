@@ -45,9 +45,9 @@ func (app *App) httpSvr() {
 	server := &http.Server{
 		Addr:         app.cfg.ListenAddr(),
 		Handler:      mux,
-		ReadTimeout:  180 * time.Second,
-		WriteTimeout: 180 * time.Second,
-		IdleTimeout:  180 * time.Second,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 	app.svr = server
 
@@ -66,8 +66,9 @@ func NewApp(c *global.Config, sig chan os.Signal) *App {
 			},
 		},
 		upGrader: &websocket.Upgrader{
-			ReadBufferSize:  bufferSize,
-			WriteBufferSize: bufferSize,
+			HandshakeTimeout: 2 * time.Second,
+			ReadBufferSize:   bufferSize,
+			WriteBufferSize:  bufferSize,
 			CheckOrigin: func(r *http.Request) bool {
 				// Allow all connections by default
 				return true

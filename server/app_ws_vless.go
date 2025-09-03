@@ -212,6 +212,7 @@ func (app *App) vlessUDP(_ context.Context, sv *schema.ProtoVLESS, ws *websocket
 
 	buf := app.bufferPool.Get().([]byte)
 	defer app.bufferPool.Put(buf)
+	conn.SetDeadline(time.Now().Add(2 * time.Second))
 	n, err := conn.Read(buf)
 	if err != nil {
 		logger.Error("Error reading from UDP connection:", "err", err)
