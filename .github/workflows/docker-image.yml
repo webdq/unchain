@@ -1,11 +1,7 @@
 name: 构建image和发布
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - '*'
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -30,4 +26,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          tags: ghcr.io/${{ github.repository }}:latest
